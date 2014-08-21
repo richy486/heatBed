@@ -31,10 +31,6 @@ int led = 13;
 //Temperature Setpoint
 int TempDes = 27;
 
-// this is a function
-// this is always the first function an arduino code calls
-
-// type that is returned
 void setup(void)
 {
 
@@ -109,10 +105,10 @@ void setup(void)
     // assigns the first address found to insideThermometer
     //if (!oneWire.search(insideThermometer)) Serial.println("Unable to find address for insideThermometer");
 
-    //  // show the addresses we found on the bus
-    //  Serial.print("Device 0 Address: ");
-    //  printAddress(insideThermometer);
-    //  Serial.println();
+    // show the addresses we found on the bus
+    Serial.print("Device 0 Address: ");
+    printAddress(insideThermometer);
+    Serial.println();
   }
   // set the resolution to 9 bit (Each Dallas/Maxim device is capable of several different resolutions)
   sensors.setResolution(insideThermometer, 9);
@@ -121,27 +117,21 @@ void setup(void)
   Serial.print(sensors.getResolution(insideThermometer), DEC); 
   Serial.println();
 }
-
-// function to print the temperature for a device
-int getTemperature(DeviceAddress deviceAddress)
+// function to print a device address
+void printAddress(DeviceAddress deviceAddress)
 {
-  // make a string for assembling the data to log:
+  for (uint8_t i = 0; i < 8; i++)
 
-  //Type var_name = something
+  {
+    if (deviceAddress[i] < 16) Serial.print("0");
+    Serial.print(deviceAddress[i], HEX);
+  }
 
+}
 
-  // i++ means i = i + 1
-  // for (int i = 0; i < numberOfDevices; i++) {
-
-  //} 
-
-
-  // method 2 - faster
-  int tempC = sensors.getTempC(deviceAddress);
-
+int getTemperatureAtIndex(int index) {
+  int tempC = sensors.getTempCByIndex(0);
   return tempC;
-
-  
 }
 
 void logToFile(String stringToLog) {
@@ -161,63 +151,46 @@ void logToFile(String stringToLog) {
 
 }
 
+String dateTimeString() {
+  String string = "";
+
+  DateTime now = rtc.now();
+  string += now.year();
+  string += '/';
+  string += now.month();
+  string += '/';
+  string += now.day()
+  string += ' ';
+  string += now.hour();
+  string += ':';
+  string += now.minute();
+  string += ':';
+  string += now.second();
+
+  return string;
+}
+
 void loop(void)
 { 
-  //Time
-  
-//  DateTime now = rtc.now();
-//  Serial.print(now.year(), DEC);
-//  Serial.print('/');
-//  Serial.print(now.month(), DEC);
-//  Serial.print('/');
-//  Serial.print(now.day(), DEC);
-//  Serial.print(' ');
-//  Serial.print(now.hour(), DEC);
-//  Serial.print(':');
-//  Serial.print(now.minute(), DEC);
-//  Serial.print(':');
-//  Serial.print(now.second(), DEC);
-//  Serial.println();
-  
-  
-  // call sensors.requestTemperatures() to issue a global temperature 
-  // request to all devices on the bus
-  //  Serial.print("Requesting temperatures...");
-  sensors.requestTemperatures(); // Send the command to get temperatures
-  //  Serial.println("DONE");
+  sensors.requestTemperatures();
 
+  
   String dataString = "";
-  for (int i = 0; i < 1; i++) {
-    int temp = getTemperature(insideThermometer); // Use a simple function to print out the data
+
+  dataString += dateTimeString();
+  dataString += ", ";
+
+  int deviceCount = sensors.getDeviceCount();
+  for (int i = 0; i < deviceCount; i++) {
+    int temp = getTemperatureAtIndex(i);
+
     dataString += temp;
     dataString += ", ";
-    
-    
-//    if (sensors.getAddress(insideThermometer, i)) {
-//      
-//    } else {
-//      Serial.print("error getting device: ");
-////      Serial.print(insideThermometer);
-////      Serial.pring(", ");
-//      Serial.println(i);
-//    }
+
   }
   
-  // log it here
   logToFile(dataString);
   
   delay(1000);
-
-}
-
-// function to print a device address
-void printAddress(DeviceAddress deviceAddress)
-{
-  for (uint8_t i = 0; i < 8; i++)
-
-  {
-    if (deviceAddress[i] < 16) Serial.print("0");
-    Serial.print(deviceAddress[i], HEX);
-  }
 
 }
