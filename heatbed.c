@@ -77,7 +77,7 @@ void setup(void)
     Serial.println("Card failed, or not present");
     // don't do anything more:
     return;
-
+	}
     //*****************************************************
 
     // assign address manually.  the addresses below will beed to be changed
@@ -93,23 +93,11 @@ void setup(void)
     // the devices on your bus (and assuming they don't change).
     if (!sensors.getAddress(insideThermometer, 0)) Serial.println("Unable to find address for Device 0"); 
 
-    // method 2: search()
-    // search() looks for the next device. Returns 1 if a new address has been
-    // returned. A zero might mean that the bus is shorted, there are no devices, 
-    // or you have already retrieved all of them.  It might be a good idea to 
-    // check the CRC to make sure you didn't get garbage.  The order is 
-    // deterministic. You will always get the same devices in the same order
-    //
-    // Must be called before search()
-    //oneWire.reset_search();
-    // assigns the first address found to insideThermometer
-    //if (!oneWire.search(insideThermometer)) Serial.println("Unable to find address for insideThermometer");
-
     // show the addresses we found on the bus
     Serial.print("Device 0 Address: ");
     printAddress(insideThermometer);
     Serial.println();
-  }
+  
   // set the resolution to 9 bit (Each Dallas/Maxim device is capable of several different resolutions)
   sensors.setResolution(insideThermometer, 9);
 
@@ -117,25 +105,10 @@ void setup(void)
   Serial.print(sensors.getResolution(insideThermometer), DEC); 
   Serial.println();
 }
-// function to print a device address
-void printAddress(DeviceAddress deviceAddress)
-{
-  for (uint8_t i = 0; i < 8; i++)
 
-  {
-    if (deviceAddress[i] < 16) Serial.print("0");
-    Serial.print(deviceAddress[i], HEX);
-  }
-
-}
-
-int getTemperatureAtIndex(int index) {
-  int tempC = sensors.getTempCByIndex(0);
-  return tempC;
-}
 
 void logToFile(String stringToLog) {
-  File dataFile = SD.open("datalog1.txt", FILE_WRITE);
+  File dataFile = SD.open("datalog3.txt", FILE_WRITE);
 
     // if the file is available, write to it:
     if (dataFile) {
@@ -146,7 +119,7 @@ void logToFile(String stringToLog) {
     }  
     // if the file isn't open, pop up an error:
     else {
-      Serial.println("error opening datalog.csv");
+      Serial.println("error opening datalog.txt");
     }
 
 }
@@ -170,6 +143,22 @@ String dateTimeString() {
   return string;
 }
 
+// function to print a device address
+void printAddress(DeviceAddress deviceAddress)
+{
+  for (uint8_t i = 0; i < 1; i++)
+
+  {
+    if (deviceAddress[i] < 1) Serial.print("0");
+    Serial.print(deviceAddress[i], HEX);
+  }
+
+}
+
+int getTemperatureAtIndex(int index) {
+  int tempC = sensors.getTempCByIndex(0);
+  return tempC;
+}
 void loop(void)
 { 
   sensors.requestTemperatures();
