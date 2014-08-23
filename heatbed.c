@@ -159,7 +159,7 @@ String dateTimeString() {
   string += '/';
   string += now.month();
   string += '/';
-  string += now.day()
+  string += now.day();
   string += ' ';
   string += now.hour();
   string += ':';
