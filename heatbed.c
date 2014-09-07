@@ -77,50 +77,62 @@ void setup(void)
     Serial.println("Card failed, or not present");
     // don't do anything more:
     return;
-	}
-    //*****************************************************
+  }
+  //*****************************************************
 
-    // assign address manually.  the addresses below will beed to be changed
-    // to valid device addresses on your bus.  device address can be retrieved
-    // by using either oneWire.search(deviceAddress) or individually via
-    // sensors.getAddress(deviceAddress, index)
-    //insideThermometer = { 0x28, 0x1D, 0x39, 0x31, 0x2, 0x0, 0x0, 0xF0 };
+  // assign address manually.  the addresses below will beed to be changed
+  // to valid device addresses on your bus.  device address can be retrieved
+  // by using either oneWire.search(deviceAddress) or individually via
+  // sensors.getAddress(deviceAddress, index)
+  //insideThermometer = { 0x28, 0x1D, 0x39, 0x31, 0x2, 0x0, 0x0, 0xF0 };
 
-    // Method 1:
-    // search for devices on the bus and assign based on an index.  ideally,
-    // you would do this to initially discover addresses on the bus and then 
-    // use those addresses and manually assign them (see above) once you know 
-    // the devices on your bus (and assuming they don't change).
-    if (!sensors.getAddress(insideThermometer, 0)) Serial.println("Unable to find address for Device 0"); 
+  // Method 1:
+  // search for devices on the bus and assign based on an index.  ideally,
+  // you would do this to initially discover addresses on the bus and then 
+  // use those addresses and manually assign them (see above) once you know 
+  // the devices on your bus (and assuming they don't change).
+  int deviceCount = sensors.getDeviceCount();
+  for (int i = 0; i < deviceCount; i++) {
 
+    if (!sensors.getAddress(insideThermometer, i)) {
+      Serial.print("Unable to find address for Device 0");
+      Serial.println(i); 
+    }
     // show the addresses we found on the bus
-    Serial.print("Device 0 Address: ");
+    Serial.print("Device ");
+    Serial.print(i);
+    Serial.print(" Address: ");
     printAddress(insideThermometer);
     Serial.println();
-  
+  }
   // set the resolution to 9 bit (Each Dallas/Maxim device is capable of several different resolutions)
   sensors.setResolution(insideThermometer, 9);
 
-  Serial.print("Device 0 Resolution: ");
-  Serial.print(sensors.getResolution(insideThermometer), DEC); 
-  Serial.println();
+  for (int i = 0; i < deviceCount; i++) {
+
+    Serial.print("Device ");
+    Serial.print(i);
+    Serial.print(" Resolution: ");
+    Serial.print(sensors.getResolution(insideThermometer), DEC); 
+    Serial.println();
+  }
 }
 
 
 void logToFile(String stringToLog) {
-  File dataFile = SD.open("datalog3.txt", FILE_WRITE);
+  File dataFile = SD.open("heatbed.csv", FILE_WRITE);
 
-    // if the file is available, write to it:
-    if (dataFile) {
-      dataFile.println(stringToLog);
-      dataFile.close();
-      // print to the serial port too:
-      Serial.println(stringToLog);
-    }  
-    // if the file isn't open, pop up an error:
-    else {
-      Serial.println("error opening datalog.txt");
-    }
+  // if the file is available, write to it:
+  if (dataFile) {
+    dataFile.println(stringToLog);
+    dataFile.close();
+    // print to the serial port too:
+    Serial.println(stringToLog);
+  }  
+  // if the file isn't open, pop up an error:
+  else {
+    Serial.println("error opening datalog.txt");
+  }
 
 }
 
@@ -155,15 +167,15 @@ void printAddress(DeviceAddress deviceAddress)
 
 }
 
-int getTemperatureAtIndex(int index) {
-  int tempC = sensors.getTempCByIndex(0);
+float getTemperatureAtIndex(int index) {
+  float tempC = sensors.getTempCByIndex(index);
   return tempC;
 }
 void loop(void)
 { 
   sensors.requestTemperatures();
 
-  
+
   String dataString = "";
 
   dataString += dateTimeString();
@@ -171,15 +183,21 @@ void loop(void)
 
   int deviceCount = sensors.getDeviceCount();
   for (int i = 0; i < deviceCount; i++) {
-    int temp = getTemperatureAtIndex(i);
+    float temp = getTemperatureAtIndex(i);
 
-    dataString += temp;
+    char buffer[30];
+
+    String floatString = dtostrf(temp, 0, 2, buffer);
+    //Serial.print("buffer: ");
+    //Serial.println(buffer);
+    dataString += buffer;//(int)temp;
     dataString += ", ";
 
   }
-  
+
   logToFile(dataString);
-  
+
   delay(1000);
 
 }
+
